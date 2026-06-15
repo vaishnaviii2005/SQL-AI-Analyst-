@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SQL AI Analyst</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #21263a;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.14);
+      --text: #e8eaf0;
+      --text2: #8b90a0;
+      --text3: #555a6e;
+      --accent: #4f8ef7;
+      --accent-dim: rgba(79,142,247,0.12);
+      --green: #3ecf8e;
+      --green-dim: rgba(62,207,142,0.12);
+      --amber: #f59e0b;
+      --amber-dim: rgba(245,158,11,0.12);
+      --red: #f87171;
+      --red-dim: rgba(248,113,113,0.12);
+      --radius: 10px;
+      --radius-lg: 14px;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Sidebar ── */
+    .layout { display: flex; flex: 1; }
+
+    .sidebar {
+      width: 240px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      padding: 1.5rem 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 4px;
+    }
+    .logo-icon {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; color: #fff;
+    }
+    .logo-text { font-size: 15px; font-weight: 600; letter-spacing: -0.02em; }
+    .logo-sub { font-size: 11px; color: var(--text3); }
+
+    .sidebar-section-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--text3);
+      padding: 0 4px;
+      margin-bottom: 6px;
+    }
+
+    .table-list { display: flex; flex-direction: column; gap: 2px; }
+    .table-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 7px 10px;
+      border-radius: var(--radius);
+      font-size: 13px; color: var(--text2);
+      cursor: pointer; transition: all .15s;
+    }
+    .table-item:hover { background: var(--surface2); color: var(--text); }
+    .table-item i { font-size: 13px; width: 16px; color: var(--text3); }
+
+    .suggestion-list { display: flex; flex-direction: column; gap: 4px; }
+    .sugg-btn {
+      text-align: left;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--text2);
+      cursor: pointer;
+      transition: all .15s;
+      font-family: 'Inter', sans-serif;
+      line-height: 1.4;
+    }
+    .sugg-btn:hover { border-color: var(--border2); background: var(--surface2); color: var(--text); }
+
+    /* ── Main ── */
+    .main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .topbar {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .query-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .query-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border2);
+      border-radius: var(--radius-lg);
+      padding: 12px 16px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .query-input::placeholder { color: var(--text3); }
+    .query-input:focus { border-color: var(--accent); }
+
+    .run-btn {
+      padding: 12px 22px;
+      background: var(--accent);
+      border: none;
+      border-radius: var(--radius-lg);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      transition: opacity .15s, transform .1s;
+      white-space: nowrap;
+    }
+    .run-btn:hover { opacity: .9; }
+    .run-btn:active { transform: scale(0.98); }
+    .run-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+    .status-bar {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12px; color: var(--text3);
+      min-height: 20px;
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 6px var(--green);
+    }
+    .status-dot.loading { background: var(--amber); box-shadow: 0 0 6px var(--amber); animation: pulse 1s infinite; }
+    .status-dot.error { background: var(--red); box-shadow: 0 0 6px var(--red); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+    /* ── Content ── */
+    .content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .empty-state {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px; color: var(--text3); text-align: center;
+    }
+    .empty-state i { font-size: 40px; opacity: .4; }
+    .empty-state p { font-size: 14px; }
+
+    /* SQL block */
+    .sql-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .sql-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sql-header-left { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text2); font-weight: 500; }
+    .sql-header-left i { color: var(--accent); }
+    .copy-btn {
+      background: none; border: 1px solid var(--border); border-radius: 6px;
+      padding: 4px 10px; font-size: 11px; color: var(--text2);
+      cursor: pointer; font-family: 'Inter', sans-serif; transition: all .15s;
+    }
+    .copy-btn:hover { border-color: var(--border2); color: var(--text); }
+    .sql-code {
+      padding: 14px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px;
+      color: #a9c0f5;
+      white-space: pre-wrap;
+      line-height: 1.7;
+    }
+
+    /* Metrics */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.1rem;
+    }
+    .metric-label { font-size: 11px; color: var(--text3); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+    .metric-value { font-size: 24px; font-weight: 600; color: var(--text); letter-spacing: -0.02em; }
+    .metric-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+    /* Tabs */
+    .tab-container {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .tab-header {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      padding: 0 4px;
+    }
+    .tab-btn {
+      padding: 11px 16px;
+      font-size: 13px; font-weight: 500;
+      color: var(--text3);
+      background: none; border: none;
+      border-bottom: 2px solid transparent;
+      cursor: pointer; font-family: 'Inter', sans-serif;
+      transition: color .15s;
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: -1px;
+    }
+    .tab-btn:hover { color: var(--text2); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+    .tab-body { padding: 1.25rem; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* Chart */
+    .chart-wrap { position: relative; width: 100%; }
+
+    /* Table */
+    .result-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .result-table th {
+      text-align: left; padding: 9px 12px;
+      color: var(--text3); font-weight: 500; font-size: 11px;
+      text-transform: uppercase; letter-spacing: .05em;
+      border-bottom: 1px solid var(--border);
+    }
+    .result-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+    .result-table tr:last-child td { border-bottom: none; }
+    .result-table tr:hover td { background: var(--surface2); }
+    .badge {
+      display: inline-block; padding: 2px 8px;
+      border-radius: 99px; font-size: 11px; font-weight: 500;
+    }
+    .badge-red { background: var(--red-dim); color: var(--red); }
+    .badge-amber { background: var(--amber-dim); color: var(--amber); }
+    .badge-green { background: var(--green-dim); color: var(--green); }
+
+    /* Insight */
+    .insight-text {
+      font-size: 14px; line-height: 1.75;
+      color: var(--text2);
+    }
+    .insight-icon { font-size: 20px; color: var(--accent); margin-bottom: 10px; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 99px; }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-icon"><i class="fa-solid fa-database"></i></div>
+      <div>
+        <div class="logo-text">SQL AI Analyst</div>
+        <div class="logo-sub">Hospital Management DB</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sidebar-section-label">Tables</div>
+      <div class="table-list" id="tableList">
+        <div class="table-item"><i class="fa-solid fa-building-columns"></i> Loading…</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="sidebar-section-label">Example queries</div>
+      <div class="suggestion-list">
+        <button class="sugg-btn" onclick="setQuery('Show me the top 5 hospitals with the highest occupancy')">Top 5 hospitals by occupancy</button>
+        <button class="sugg-btn" onclick="setQuery('Which hospitals have ICU occupancy above 85%?')">ICU occupancy > 85%</button>
+        <button class="sugg-btn" onclick="setQuery('Average length of stay per hospital, ordered lowest to highest')">Avg length of stay</button>
+        <button class="sugg-btn" onclick="setQuery('Total admissions per hospital in March 2024')">March 2024 admissions</button>
+        <button class="sugg-btn" onclick="setQuery('Staff to patient ratio (doctors only) for each hospital')">Doctor-to-patient ratio</button>
+        <button class="sugg-btn" onclick="setQuery('Top 3 hospitals by Q1 revenue')">Top 3 by Q1 revenue</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div class="query-row">
+        <input
+          class="query-input"
+          id="queryInput"
+          type="text"
+          placeholder="Ask anything about the hospital database in plain English…"
+          onkeydown="if(event.key==='Enter') runQuery()"
+        />
+        <button class="run-btn" id="runBtn" onclick="runQuery()">
+          <i class="fa-solid fa-play"></i> Run query
+        </button>
+      </div>
+      <div class="status-bar">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">Ready</span>
+      </div>
+    </div>
+
+    <div class="content" id="content">
+      <div class="empty-state" id="emptyState">
+        <i class="fa-regular fa-chart-bar"></i>
+        <p>Ask a question above to run your first query</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+let chartInstance = null;
+
+// Load schema into sidebar
+async function loadSchema() {
+  try {
+    const res = await fetch('/api/schema');
+    const schema = await res.json();
+    const icons = { hospitals: 'fa-building-columns', admissions: 'fa-clipboard', staff: 'fa-user-nurse', patients: 'fa-bed' };
+    document.getElementById('tableList').innerHTML = Object.entries(schema).map(([table, cols]) => `
+      <div class="table-item" title="${cols.map(c=>c.name).join(', ')}">
+        <i class="fa-solid ${icons[table]||'fa-table'}"></i> ${table}
+        <span style="margin-left:auto;font-size:11px;color:var(--text3)">${cols.length} cols</span>
+      </div>`).join('');
+  } catch(e) {
+    document.getElementById('tableList').innerHTML = '<div class="table-item" style="color:var(--red)">Server offline</div>';
+  }
+}
+
+function setQuery(q) {
+  document.getElementById('queryInput').value = q;
+  runQuery();
+}
+
+function setStatus(state, text) {
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (state !== 'ready' ? ' ' + state : '');
+  document.getElementById('statusText').textContent = text;
+}
+
+async function runQuery() {
+  const question = document.getElementById('queryInput').value.trim();
+  if (!question) return;
+
+  document.getElementById('runBtn').disabled = true;
+  document.getElementById('emptyState')?.remove();
+  setStatus('loading', 'Generating SQL…');
+
+  // Clear old results
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  // Skeleton loader
+  const skeleton = document.createElement('div');
+  skeleton.style.cssText = 'display:flex;align-items:center;gap:12px;padding:2rem;color:var(--text3);font-size:14px';
+  skeleton.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> <span id="skeletonText">Generating SQL…</span>`;
+  content.appendChild(skeleton);
+
+  const steps = ['Generating SQL…', 'Executing query…', 'Building insight…'];
+  let si = 0;
+  const stepTimer = setInterval(() => { si++; if(si < steps.length) { document.getElementById('skeletonText').textContent = steps[si]; setStatus('loading', steps[si]); } }, 900);
+
+  try {
+    const res = await fetch('/api/query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question })
+    });
+    clearInterval(stepTimer);
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error + (data.detail ? ': ' + data.detail : ''));
+
+    content.innerHTML = '';
+    renderResults(data, question);
+    setStatus('ready', `${data.rows.length} rows returned`);
+  } catch(err) {
+    clearInterval(stepTimer);
+    content.innerHTML = `<div style="background:var(--red-dim);border:1px solid var(--red);border-radius:var(--radius-lg);padding:1.25rem;color:var(--red);font-size:13px">
+      <i class="fa-solid fa-triangle-exclamation" style="margin-right:8px"></i>${err.message}</div>`;
+    setStatus('error', 'Query failed');
+  }
+
+  document.getElementById('runBtn').disabled = false;
+}
+
+function renderResults(data, question) {
+  const content = document.getElementById('content');
+  const { sql, columns, rows, insight } = data;
+
+  // ── SQL card
+  const sqlCard = document.createElement('div');
+  sqlCard.className = 'sql-card';
+  sqlCard.innerHTML = `
+    <div class="sql-header">
+      <div class="sql-header-left"><i class="fa-solid fa-code"></i> Generated SQL</div>
+      <button class="copy-btn" onclick="navigator.clipboard.writeText(${JSON.stringify(sql)});this.textContent='Copied!';setTimeout(()=>this.textContent='Copy',1500)">Copy</button>
+    </div>
+    <div class="sql-code">${escHtml(sql)}</div>`;
+  content.appendChild(sqlCard);
+
+  // ── Metrics (auto-detected from result columns)
+  const metrics = extractMetrics(columns, rows);
+  if (metrics.length) {
+    const mr = document.createElement('div');
+    mr.className = 'metrics-row';
+    mr.innerHTML = metrics.map(m => `
+      <div class="metric-card">
+        <div class="metric-label">${m.label}</div>
+        <div class="metric-value">${m.value}</div>
+        <div class="metric-sub">${m.sub}</div>
+      </div>`).join('');
+    content.appendChild(mr);
+  }
+
+  // ── Tab panel
+  const tabContainer = document.createElement('div');
+  tabContainer.className = 'tab-container';
+  tabContainer.innerHTML = `
+    <div class="tab-header">
+      <button class="tab-btn active" onclick="switchTab(this,'tabChart')"><i class="fa-solid fa-chart-bar"></i> Chart</button>
+      <button class="tab-btn" onclick="switchTab(this,'tabTable')"><i class="fa-solid fa-table"></i> Table <span style="margin-left:4px;font-size:11px;color:var(--text3)">${rows.length}</span></button>
+      <button class="tab-btn" onclick="switchTab(this,'tabInsight')"><i class="fa-regular fa-lightbulb"></i> Insight</button>
+    </div>
+    <div class="tab-body">
+      <div class="tab-panel active" id="tabChart">
+        <div class="chart-wrap" id="chartWrap" style="height:320px"><canvas id="mainChart" role="img" aria-label="Query results visualization"></canvas></div>
+      </div>
+      <div class="tab-panel" id="tabTable">
+        <div style="overflow-x:auto" id="tableBody"></div>
+      </div>
+      <div class="tab-panel" id="tabInsight">
+        <div class="insight-icon"><i class="fa-regular fa-lightbulb"></i></div>
+        <p class="insight-text">${escHtml(insight)}</p>
+      </div>
+    </div>`;
+  content.appendChild(tabContainer);
+
+  // Render chart
+  renderChart(columns, rows);
+
+  // Render table
+  document.getElementById('tableBody').innerHTML = buildTable(columns, rows);
+}
+
+function extractMetrics(columns, rows) {
+  if (!rows.length) return [];
+  const metrics = [];
+
+  // Occupancy metric
+  const occCol = columns.find(c => c.toLowerCase().includes('occupancy') || c.toLowerCase().includes('occ_pct') || c.toLowerCase().includes('pct'));
+  const nameCol = columns.find(c => c.toLowerCase() === 'name');
+
+  if (occCol) {
+    const max = rows.reduce((a,b) => parseFloat(b[occCol]||0) > parseFloat(a[occCol]||0) ? b : a);
+    const avg = rows.reduce((s,r) => s + parseFloat(r[occCol]||0), 0) / rows.length;
+    metrics.push({ label: 'Highest', value: parseFloat(max[occCol]).toFixed(1)+'%', sub: max[nameCol] || 'top result' });
+    metrics.push({ label: 'Average', value: avg.toFixed(1)+'%', sub: 'across results' });
+  }
+
+  // Count of rows
+  metrics.push({ label: 'Results', value: rows.length, sub: 'rows returned' });
+
+  // Numeric sum column
+  const numCol = columns.find(c => !c.toLowerCase().includes('id') && !c.toLowerCase().includes('occ') && typeof rows[0]?.[c] === 'number');
+  if (numCol && !occCol) {
+    const sum = rows.reduce((s,r) => s + (parseFloat(r[numCol])||0), 0);
+    metrics.unshift({ label: numCol.replace(/_/g,' '), value: sum > 1000 ? sum.toLocaleString() : sum.toFixed(1), sub: 'total' });
+  }
+
+  return metrics.slice(0, 4);
+}
+
+function renderChart(columns, rows) {
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  if (!rows.length) return;
+
+  const labelCol = columns.find(c => typeof rows[0][c] === 'string') || columns[0];
+  const valueCol = columns.find(c => c !== labelCol && (typeof rows[0][c] === 'number' || !isNaN(parseFloat(rows[0][c]))));
+
+  if (!valueCol) return;
+
+  const labels = rows.map(r => String(r[labelCol] || '').slice(0, 20));
+  const values = rows.map(r => parseFloat(r[valueCol]) || 0);
+  const isHoriz = labels.length > 5 || labels.some(l => l.length > 12);
+
+  if (isHoriz) {
+    const h = Math.max(labels.length * 44 + 80, 260);
+    document.getElementById('chartWrap').style.height = h + 'px';
+  }
+
+  chartInstance = new Chart(document.getElementById('mainChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: valueCol.replace(/_/g, ' '),
+        data: values,
+        backgroundColor: 'rgba(79,142,247,0.7)',
+        borderColor: '#4f8ef7',
+        borderWidth: 1.5,
+        borderRadius: 5,
+      }]
+    },
+    options: {
+      indexAxis: isHoriz ? 'y' : 'x',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#555a6e', font: { size: 11, family: 'Inter' } }, border: { color: 'transparent' } },
+        y: { grid: { color: 'rgba(255,255,255,.05)' }, ticks: { color: '#555a6e', font: { size: 11, family: 'Inter' } }, border: { color: 'transparent' } }
+      }
+    }
+  });
+}
+
+function buildTable(columns, rows) {
+  const heads = columns.map(c => `<th>${c.replace(/_/g,' ')}</th>`).join('');
+  const bodyRows = rows.map(row => {
+    const cells = columns.map(col => {
+      const val = row[col];
+      const str = val === null || val === undefined ? '—' : String(val);
+      // Color-code occupancy percentages
+      if ((col.toLowerCase().includes('occ') || col.toLowerCase().includes('pct')) && !isNaN(parseFloat(str))) {
+        const pct = parseFloat(str);
+        const cls = pct >= 90 ? 'badge-red' : pct >= 75 ? 'badge-amber' : 'badge-green';
+        return `<td><span class="badge ${cls}">${pct.toFixed(1)}%</span></td>`;
+      }
+      return `<td>${escHtml(str)}</td>`;
+    }).join('');
+    return `<tr>${cells}</tr>`;
+  }).join('');
+  return `<table class="result-table"><thead><tr>${heads}</tr></thead><tbody>${bodyRows}</tbody></table>`;
+}
+
+function switchTab(btn, panelId) {
+  btn.closest('.tab-header').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  btn.closest('.tab-body').querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(panelId).classList.add('active');
+}
+
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+loadSchema();
+</script>
+</body>
+</html>
