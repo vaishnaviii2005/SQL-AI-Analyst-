@@ -1,11 +1,6 @@
 # SQL AI Analyst 🏥
 
-A natural language analytics dashboard that converts plain English questions into SQL queries, executes them against a live database, and returns charts, tables, and AI-generated insights — powered by Claude.
-
-![Demo](https://img.shields.io/badge/stack-Node.js%20%7C%20SQLite%20%7C%20Claude%20API%20%7C%20Chart.js-4f8ef7?style=flat-square)
-![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)
-
----
+A natural language analytics dashboard that converts plain English questions into SQL queries, executes them against a live database, and returns charts, tables, and AI-generated insights.
 
 ## What it does
 
