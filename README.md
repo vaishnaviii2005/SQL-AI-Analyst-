@@ -165,6 +165,9 @@ Show customer segment distribution
 Show me customers who spent more than $500 in Q4 2024
 How did Electronics category perform vs last year?
 ```
+DEMO: 
+
+
 ## License
 
 MIT
