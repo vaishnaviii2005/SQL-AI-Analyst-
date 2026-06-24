@@ -165,7 +165,7 @@ Show customer segment distribution
 Show me customers who spent more than $500 in Q4 2024
 How did Electronics category perform vs last year?
 ```
-DEMO: 
+DEMO: https://github.com/vaishnaviii2005/SQL-AI-Analyst-/blob/main/Screen%20Recording%202026-06-24%20191535.mp4
 
 
 ## License
